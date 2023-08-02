@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,6 +125,30 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+
+void AProtoGravityShiftCharacter::AdjustMeshToWall(const FInputActionValue& Value, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
+{
+	// input is a Vector2D
+	FVector2D inputVector = Value.Get<FVector2D>();
+
+
+	FVector inputDirection = (wallRight* inputVector.X) + (wallForward * inputVector.Y);
+	inputDirection.Normalize();
+	
+	double rad = FMath::Acos(wallForward.GetSafeNormal().Dot(inputDirection.GetSafeNormal()));
+	double angle = FMath::RadiansToDegrees(rad);
+
+	if (FMath::Abs(inputVector.X) > 0)
+	{
+		angle *= FMath::Sign(inputVector.X);
+	}
+
+	FVector forwardVector = UKismetMathLibrary::GetForwardVector(meshWallRotation);
+	FVector adjustedWallRotation = UKismetMathLibrary::RotateAngleAxis(forwardVector, angle, wallNormal);
+
+	FRotator finalRotation = UKismetMathLibrary::MakeRotFromZX(wallNormal, adjustedWallRotation);
+	GetMesh()->SetWorldRotation(finalRotation);
+}
 
 
 

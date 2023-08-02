@@ -62,5 +62,9 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+private:
+	UFUNCTION(BlueprintCallable, Category = Character)
+	void AdjustMeshToWall(const FInputActionValue& Value, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation);
 };
 
