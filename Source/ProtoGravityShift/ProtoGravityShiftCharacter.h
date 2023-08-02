@@ -65,6 +65,6 @@ public:
 
 private:
 	UFUNCTION(BlueprintCallable, Category = Character)
-	void AdjustMeshToWall(const FInputActionValue& Value, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation);
+	void AdjustMeshToWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation);
 };
 

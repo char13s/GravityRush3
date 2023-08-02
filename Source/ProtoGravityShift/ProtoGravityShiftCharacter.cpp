@@ -126,12 +126,8 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 }
 
 
-void AProtoGravityShiftCharacter::AdjustMeshToWall(const FInputActionValue& Value, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
+void AProtoGravityShiftCharacter::AdjustMeshToWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
 {
-	// input is a Vector2D
-	FVector2D inputVector = Value.Get<FVector2D>();
-
-
 	FVector inputDirection = (wallRight* inputVector.X) + (wallForward * inputVector.Y);
 	inputDirection.Normalize();
 	
