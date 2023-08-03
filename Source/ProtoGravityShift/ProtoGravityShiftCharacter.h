@@ -45,6 +45,10 @@ class AProtoGravityShiftCharacter : public ACharacter
 	FVector WallRight;
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FVector WallForward;
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FVector MeshStartingPosOffset;
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FRotator MeshStartingRotOffset;
 
 public:
 	AProtoGravityShiftCharacter();
@@ -79,7 +83,7 @@ private:
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void AdjustToWall(FHitResult hitInfo);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void OnMeshMoveEnded();
 
 	UFUNCTION(BlueprintCallable, Category = Character)
