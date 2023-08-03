@@ -19,7 +19,7 @@ AProtoGravityShiftCharacter::AProtoGravityShiftCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -74,7 +74,7 @@ void AProtoGravityShiftCharacter::SetupPlayerInputComponent(class UInputComponen
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -102,7 +102,7 @@ void AProtoGravityShiftCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -126,11 +126,19 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 }
 
 
+void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
+{
+	ConsumeMovementInputVector();
+	AddMovementInput(wallRight, inputVector.X);
+	AddMovementInput(wallForward, inputVector.Y);
+	AdjustMeshToWall(inputVector, wallForward, wallRight, wallNormal, meshWallRotation);
+}
+
 void AProtoGravityShiftCharacter::AdjustMeshToWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
 {
-	FVector inputDirection = (wallRight* inputVector.X) + (wallForward * inputVector.Y);
+	FVector inputDirection = (wallRight * inputVector.X) + (wallForward * inputVector.Y);
 	inputDirection.Normalize();
-	
+
 	double rad = FMath::Acos(wallForward.GetSafeNormal().Dot(inputDirection.GetSafeNormal()));
 	double angle = FMath::RadiansToDegrees(rad);
 
