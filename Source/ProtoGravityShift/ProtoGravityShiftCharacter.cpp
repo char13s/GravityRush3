@@ -10,6 +10,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -126,15 +128,63 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 }
 
 
+void AProtoGravityShiftCharacter::ShiftAccelerating(FVector gravityDirection, float gravityForce)
+{	
+	GetCharacterMovement()->Velocity = gravityDirection.GetSafeNormal() * gravityForce;
+}
+
+void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+
+	FVector lookDir = FVector(hitInfo.Normal.X, hitInfo.Normal.Y, 0).GetSafeNormal();
+	lookDir *= -1;	
+	FVector capsulePos = GetCapsuleComponent()->GetComponentLocation();
+	lookDir += capsulePos;
+	FRotator lookRotator = UKismetMathLibrary::FindLookAtRotation(capsulePos, lookDir);
+		
+	FLatentActionInfo CapsuleLatentInfo;
+	CapsuleLatentInfo.CallbackTarget = this;
+	UKismetSystemLibrary::MoveComponentTo(GetCapsuleComponent(), hitInfo.ImpactPoint,
+		lookRotator, false, false, 0.2f, true,
+		EMoveComponentAction::Type::Move, CapsuleLatentInfo);
+
+	FVector capsuleRight = UKismetMathLibrary::GetRightVector(lookRotator);
+	FTransform transform = UKismetMathLibrary::MakeTransform(hitInfo.ImpactPoint, lookRotator);
+	MeshWallRotator = UKismetMathLibrary::MakeRotFromZX(hitInfo.Normal, capsuleRight * -1);
+
+	FLatentActionInfo MeshLatentInfo;
+	MeshLatentInfo.CallbackTarget = this;
+	MeshLatentInfo.ExecutionFunction = "OnMeshMoveEnded";
+	MeshLatentInfo.Linkage = 0;
+	FRotator meshRelativeRotator = UKismetMathLibrary::InverseTransformRotation(transform, MeshWallRotator);
+	UKismetSystemLibrary::MoveComponentTo(GetMesh(), hitInfo.ImpactPoint,
+		meshRelativeRotator, false, false, 0.2f, true,
+		EMoveComponentAction::Type::Move, MeshLatentInfo);
+
+	WallNormal = hitInfo.Normal;
+	WallRight = capsuleRight;
+}
+
+void AProtoGravityShiftCharacter::OnMeshMoveEnded()
+{
+	WallForward = GetMesh()->GetRightVector();
+	UE_LOG(LogTemp, Warning, TEXT("ON MESH MOVE ENDED"));
+}
+
 void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
 {
 	ConsumeMovementInputVector();
 	AddMovementInput(wallRight, inputVector.X);
 	AddMovementInput(wallForward, inputVector.Y);
-	AdjustMeshToWall(inputVector, wallForward, wallRight, wallNormal, meshWallRotation);
+	OrientMeshToWall(inputVector, wallForward, wallRight, wallNormal, meshWallRotation);
+
 }
 
-void AProtoGravityShiftCharacter::AdjustMeshToWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
+void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation)
 {
 	FVector inputDirection = (wallRight * inputVector.X) + (wallForward * inputVector.Y);
 	inputDirection.Normalize();

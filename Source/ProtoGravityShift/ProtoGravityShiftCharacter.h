@@ -37,6 +37,15 @@ class AProtoGravityShiftCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FRotator MeshWallRotator;
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FVector WallNormal;
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FVector WallRight;
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FVector WallForward;
+
 public:
 	AProtoGravityShiftCharacter();
 	
@@ -65,8 +74,17 @@ public:
 
 private:
 	UFUNCTION(BlueprintCallable, Category = Character)
-	void MoveOnWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation);
+	void ShiftAccelerating(FVector gravityDirection, float gravityForce);
 
-	void AdjustMeshToWall(FVector2D inputVector, FVector wallForward, FVector wallRight, FVector wallNormal, FRotator meshWallRotation);
+	UFUNCTION(BlueprintCallable, Category = Character)
+	void AdjustToWall(FHitResult hitInfo);
+
+	UFUNCTION(BlueprintCallable)
+	void OnMeshMoveEnded();
+
+	UFUNCTION(BlueprintCallable, Category = Character)
+	void MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
+
+	void OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
 };
 
