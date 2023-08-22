@@ -131,7 +131,6 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-
 void AProtoGravityShiftCharacter::ShiftAccelerating(FVector gravityDirection, float gravityForce)
 {
 	GetCharacterMovement()->Velocity = gravityDirection.GetSafeNormal() * gravityForce;
@@ -144,7 +143,8 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
 	FVector lookDir = FVector(hitInfo.Normal.X, hitInfo.Normal.Y, 0).GetSafeNormal();
-	lookDir *= -1;
+	lookDir *= -500;
+
 	FVector capsulePos = GetCapsuleComponent()->GetComponentLocation();
 	FVector endPoint = capsulePos + lookDir;
 	FRotator lookRotator = UKismetMathLibrary::FindLookAtRotation(capsulePos, endPoint);
@@ -174,11 +174,16 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	MeshLatentInfo.CallbackTarget = this;
 
 	FRotator meshRot = UKismetMathLibrary::InverseTransformRotation(transform, MeshWallRotator);
+
 	/*************************************************************************************/
 	if (wallMeshTransitionDuration > 0)
 	{
-		UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, meshRot
+		FVector meshPosOffset = UKismetMathLibrary::TransformDirection(transform, MeshStartingPosOffset);
+		UE_LOG(LogTemp, Log, TEXT("LOCAL PosOffset:%s | WORLD PosOffset:%s"), *MeshStartingPosOffset.ToString(), *meshPosOffset.ToString());		
+		
+		UKismetSystemLibrary::MoveComponentTo(GetMesh(), hitInfo.ImpactPoint + meshPosOffset, MeshWallRotator
 			, false, false, wallMeshTransitionDuration, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
+		
 	}
 	else {
 		GetMesh()->SetRelativeLocation(MeshStartingPosOffset);
@@ -190,19 +195,15 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	WallRight = capsuleRight;
 	WallForward = capsuleForward;
 
-	UE_LOG(LogTemp, Log, TEXT("Normal:%s "), *WallNormal.ToString());
-	UE_LOG(LogTemp, Log, TEXT("Right:%s "), *WallRight.ToString());
-	UE_LOG(LogTemp, Log, TEXT("Forward:%s "), *WallForward.ToString());
-	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
 }
 
 
 void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
 {
 	ConsumeMovementInputVector();
-	AddMovementInput(right, inputVector.X);
-	AddMovementInput(forward, inputVector.Y);
-	OrientMeshToWall(inputVector, forward, right, normal, wallRotator);
+	AddMovementInput(WallRight, inputVector.X);
+	AddMovementInput(WallForward, inputVector.Y);
+	OrientMeshToWall(inputVector, WallForward, WallRight, WallNormal, MeshWallRotator);
 }
 
 void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
@@ -221,12 +222,13 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 	FVector forwardVector = UKismetMathLibrary::GetForwardVector(wallRotator);
 	FVector adjustedWallRotation = UKismetMathLibrary::RotateAngleAxis(forwardVector, angle, normal);
 
-	FRotator finalRotation = UKismetMathLibrary::MakeRotFromZX(normal, adjustedWallRotation*-1);
+	FRotator finalRotation = UKismetMathLibrary::MakeRotFromZX(normal, adjustedWallRotation);
 
 	UE_LOG(LogTemp, Log, TEXT("forward:%s "), *forward.ToString());
 	UE_LOG(LogTemp, Log, TEXT("right:%s "), *right.ToString());
 	UE_LOG(LogTemp, Log, TEXT("normal:%s "), *normal.ToString());
 	UE_LOG(LogTemp, Log, TEXT("---------------------"));
+	UE_LOG(LogTemp, Log, TEXT("wallRotator:%s "), *wallRotator.ToString());
 	UE_LOG(LogTemp, Log, TEXT("forwardVector:%s "), *forwardVector.ToString());
 	UE_LOG(LogTemp, Log, TEXT("adjustedWallRotation:%s "), *adjustedWallRotation.ToString());
 	UE_LOG(LogTemp, Log, TEXT("angle:%f "), angle);
@@ -236,7 +238,10 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 	UE_LOG(LogTemp, Log, TEXT("rot normal:%s "), *UKismetMathLibrary::GetUpVector(finalRotation).ToString());
 	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
 
+	UE_LOG(LogTemp, Log, TEXT("PREV:%s"), *GetMesh()->GetComponentRotation().ToString());
 	GetMesh()->SetWorldRotation(finalRotation);
+	UE_LOG(LogTemp, Log, TEXT("AFTER:%s"), *GetMesh()->GetComponentRotation().ToString());
+
 }
 
 
