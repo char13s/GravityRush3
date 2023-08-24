@@ -136,6 +136,25 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Gravity Controls
+
+void AProtoGravityShiftCharacter::GoBackToGround()
+{
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	GetCharacterMovement()->AirControl = DefaultAirControl;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	CameraBoom->SocketOffset = FVector::ZeroVector;
+
+	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
+
+	FLatentActionInfo MeshLatentInfo;
+	MeshLatentInfo.CallbackTarget = this;
+	UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, MeshStartingRotOffset
+		, false, false, backToGroundTransitionDuration, true, EMoveComponentAction::Move, MeshLatentInfo);
+}
+
 void AProtoGravityShiftCharacter::EnterLevitating()
 {
 	GetCharacterMovement()->Velocity = FVector::ZeroVector;
@@ -177,6 +196,9 @@ FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
 	FVector result = endPoint - GetActorLocation();
 	return result.GetSafeNormal();
 }
+
+//////////////////////////////////////////////////////////////////////////
+// Tick functions
 
 void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float gravityForce)
 {
@@ -243,6 +265,8 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Move on wall functions
 
 void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
 {
@@ -250,22 +274,6 @@ void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector forw
 	AddMovementInput(WallRight, inputVector.X);
 	AddMovementInput(WallForward, inputVector.Y);
 	OrientMeshToWall(inputVector, WallForward, WallRight, WallNormal, MeshWallRotator);
-}
-
-void AProtoGravityShiftCharacter::GoBackToGround_Implementation()
-{
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	GetCharacterMovement()->AirControl = DefaultAirControl;
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	CameraBoom->SocketOffset = FVector::ZeroVector;
-
-	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
-
-	FLatentActionInfo MeshLatentInfo;
-	MeshLatentInfo.CallbackTarget = this;
-	UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, MeshStartingRotOffset
-		, false, false, backToGroundTransitionDuration, true, EMoveComponentAction::Move, MeshLatentInfo);
 }
 
 void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
@@ -305,6 +313,3 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 	UE_LOG(LogTemp, Log, TEXT("AFTER:%s"), *GetMesh()->GetComponentRotation().ToString());
 
 }
-
-
-

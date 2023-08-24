@@ -67,12 +67,14 @@ class AProtoGravityShiftCharacter : public ACharacter
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FVector GravityDirection;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGravityMarkerWidget> MarkerWidgetClass;
+
 	UUserWidget* MarkerWidget;
 	/******************************************************************************************/
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
-	TSubclassOf<UGravityMarkerWidget> MarkerWidgetClass;
+
 
 public:
 	AProtoGravityShiftCharacter();
@@ -83,8 +85,6 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Character)
-	void GoBackToGround();
 
 protected:
 
@@ -103,12 +103,14 @@ protected:
 private:
 
 	UFUNCTION(BlueprintCallable, Category = Character)
+	void GoBackToGround();
+
+	UFUNCTION(BlueprintCallable, Category = Character)
 	void EnterLevitating();
 
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void Accelerate();
 
-	UFUNCTION(BlueprintCallable, Category = Character)
 	FVector CalculateGravityDirection();
 
 	UFUNCTION(BlueprintCallable, Category = Character)
@@ -120,7 +122,8 @@ private:
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
 
-
 	void OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
+
+
 };
 
