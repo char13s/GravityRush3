@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "GravityMarkerWidget.h"
 #include "ProtoGravityShiftCharacter.generated.h"
 
 
@@ -41,9 +42,11 @@ class AProtoGravityShiftCharacter : public ACharacter
 	float wallCapsuleTransitionDuration = 0.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float 	wallMeshTransitionDuration = 0.2f;
+	float wallMeshTransitionDuration = 0.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	float backToGroundTransitionDuration = 0.2f;
 	/******************************************************************************************/
-	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FRotator MeshWallRotator;
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FVector WallNormal;
@@ -55,26 +58,24 @@ class AProtoGravityShiftCharacter : public ACharacter
 	FVector MeshStartingPosOffset;
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FRotator MeshStartingRotOffset;
+
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	float DefaultGravityScale;
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	float DefaultAirControl;
+
+	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FVector GravityDirection;
+
+	UUserWidget* MarkerWidget;
 	/******************************************************************************************/
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	TSubclassOf<UGravityMarkerWidget> MarkerWidgetClass;
+
 public:
 	AProtoGravityShiftCharacter();
-	
-
-protected:
-
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-			
-
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	// To add mapping context
-	virtual void BeginPlay();
 
 public:
 	/** Returns CameraBoom subobject **/
@@ -82,15 +83,43 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = Character)
+	void GoBackToGround();
+
+protected:
+
+	// APawn interface
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// To add mapping context
+	virtual void BeginPlay();
+
+	/** Called for movement input */
+	void Move(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	void Look(const FInputActionValue& Value);
+
 private:
+
 	UFUNCTION(BlueprintCallable, Category = Character)
-	void ShiftAccelerating(FVector gravityDirection, float gravityForce);
+	void EnterLevitating();
+
+	UFUNCTION(BlueprintCallable, Category = Character)
+	void Accelerate();
+
+	UFUNCTION(BlueprintCallable, Category = Character)
+	FVector CalculateGravityDirection();
+
+	UFUNCTION(BlueprintCallable, Category = Character)
+	void ShiftAccelerating(FVector direction, float gravityForce);
 
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void AdjustToWall(FHitResult hitInfo);
 
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
+
 
 	void OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
 };

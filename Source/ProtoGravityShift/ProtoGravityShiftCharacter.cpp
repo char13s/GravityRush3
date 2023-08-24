@@ -11,8 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
-
-
+#include "Blueprint/UserWidget.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProtoGravityShiftCharacter
@@ -71,6 +70,12 @@ void AProtoGravityShiftCharacter::BeginPlay()
 	MeshStartingPosOffset = GetMesh()->GetRelativeLocation();
 	MeshStartingRotOffset = GetMesh()->GetRelativeRotation();
 
+	DefaultAirControl = GetCharacterMovement()->AirControl;
+	DefaultGravityScale = GetCharacterMovement()->GravityScale;
+	
+	MarkerWidget = CreateWidget<UGravityMarkerWidget>(this->GetGameInstance(), MarkerWidgetClass);
+	MarkerWidget->AddToViewport();
+	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -131,9 +136,51 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AProtoGravityShiftCharacter::ShiftAccelerating(FVector gravityDirection, float gravityForce)
+void AProtoGravityShiftCharacter::EnterLevitating()
 {
-	GetCharacterMovement()->Velocity = gravityDirection.GetSafeNormal() * gravityForce;
+	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+	GetCharacterMovement()->AirControl = 0;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+	GetCharacterMovement()->GravityScale = 0;
+	
+	MarkerWidget->SetVisibility(ESlateVisibility::Visible);
+
+	CameraBoom->SocketOffset = FVector(0,50,0);
+}
+
+void AProtoGravityShiftCharacter::Accelerate()
+{
+	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
+	CameraBoom->SocketOffset = FVector::ZeroVector;
+	GetCharacterMovement()->AirControl = DefaultAirControl;
+	GetCharacterMovement()->GravityScale = 0;
+	GravityDirection = CalculateGravityDirection();
+}
+
+FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
+{
+	FVector endPoint = FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 9000);
+	FVector startPoint = FollowCamera->GetComponentLocation();
+
+	// Ignore any specific actors
+	TArray<AActor*> ignoreActors;
+	// Ignore self or remove this line to not ignore any
+	ignoreActors.Init(this, 1);
+
+	FHitResult hitResult;
+	bool didHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), startPoint, endPoint, ETraceTypeQuery::TraceTypeQuery1, false, ignoreActors, EDrawDebugTrace::None, hitResult, true);
+	if (didHit)
+	{
+		endPoint = hitResult.Location;
+	}
+
+	FVector result = endPoint - GetActorLocation();
+	return result.GetSafeNormal();
+}
+
+void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float gravityForce)
+{
+	GetCharacterMovement()->Velocity = direction.GetSafeNormal() * gravityForce;
 }
 
 void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
@@ -165,7 +212,6 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	/*************************************************************************************/
 
 	FVector capsuleRight = UKismetMathLibrary::GetRightVector(lookRotator);
-	FVector capsuleForward = UKismetMathLibrary::GetUpVector(lookRotator);
 
 	FTransform transform = UKismetMathLibrary::MakeTransform(hitInfo.ImpactPoint, lookRotator);
 	MeshWallRotator = UKismetMathLibrary::MakeRotFromZX(hitInfo.Normal, capsuleRight * -1);
@@ -179,11 +225,10 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	if (wallMeshTransitionDuration > 0)
 	{
 		FVector meshPosOffset = UKismetMathLibrary::TransformDirection(transform, MeshStartingPosOffset);
-		UE_LOG(LogTemp, Log, TEXT("LOCAL PosOffset:%s | WORLD PosOffset:%s"), *MeshStartingPosOffset.ToString(), *meshPosOffset.ToString());		
-		
+
 		UKismetSystemLibrary::MoveComponentTo(GetMesh(), hitInfo.ImpactPoint + meshPosOffset, MeshWallRotator
 			, false, false, wallMeshTransitionDuration, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
-		
+
 	}
 	else {
 		GetMesh()->SetRelativeLocation(MeshStartingPosOffset);
@@ -193,7 +238,8 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 
 	WallNormal = hitInfo.Normal;
 	WallRight = capsuleRight;
-	WallForward = capsuleForward;
+	WallForward = GetMesh()->GetRightVector();
+	UE_LOG(LogTemp, Log, TEXT("Wall Right:%s | Forward:%s"), *WallRight.ToString(), *WallForward.ToString());
 
 }
 
@@ -204,6 +250,22 @@ void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector forw
 	AddMovementInput(WallRight, inputVector.X);
 	AddMovementInput(WallForward, inputVector.Y);
 	OrientMeshToWall(inputVector, WallForward, WallRight, WallNormal, MeshWallRotator);
+}
+
+void AProtoGravityShiftCharacter::GoBackToGround_Implementation()
+{
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	GetCharacterMovement()->AirControl = DefaultAirControl;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	CameraBoom->SocketOffset = FVector::ZeroVector;
+
+	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
+
+	FLatentActionInfo MeshLatentInfo;
+	MeshLatentInfo.CallbackTarget = this;
+	UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, MeshStartingRotOffset
+		, false, false, backToGroundTransitionDuration, true, EMoveComponentAction::Move, MeshLatentInfo);
 }
 
 void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
