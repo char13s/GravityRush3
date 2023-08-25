@@ -72,7 +72,7 @@ void AProtoGravityShiftCharacter::BeginPlay()
 
 	DefaultAirControl = GetCharacterMovement()->AirControl;
 	DefaultGravityScale = GetCharacterMovement()->GravityScale;
-	
+
 	MarkerWidget = CreateWidget<UGravityMarkerWidget>(this->GetGameInstance(), MarkerWidgetClass);
 	MarkerWidget->AddToViewport();
 	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
@@ -152,7 +152,7 @@ void AProtoGravityShiftCharacter::GoBackToGround()
 	FLatentActionInfo MeshLatentInfo;
 	MeshLatentInfo.CallbackTarget = this;
 	UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, MeshStartingRotOffset
-		, false, false, backToGroundTransitionDuration, true, EMoveComponentAction::Move, MeshLatentInfo);
+		, false, false, BackToGroundTransitionDuration, true, EMoveComponentAction::Move, MeshLatentInfo);
 }
 
 void AProtoGravityShiftCharacter::EnterLevitating()
@@ -161,10 +161,10 @@ void AProtoGravityShiftCharacter::EnterLevitating()
 	GetCharacterMovement()->AirControl = 0;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 	GetCharacterMovement()->GravityScale = 0;
-	
+
 	MarkerWidget->SetVisibility(ESlateVisibility::Visible);
 
-	CameraBoom->SocketOffset = FVector(0,50,0);
+	CameraBoom->SocketOffset = FVector(0, 50, 0);
 }
 
 void AProtoGravityShiftCharacter::Accelerate()
@@ -200,9 +200,9 @@ FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
 //////////////////////////////////////////////////////////////////////////
 // Tick functions
 
-void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float gravityForce)
+void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float force)
 {
-	GetCharacterMovement()->Velocity = direction.GetSafeNormal() * gravityForce;
+	GetCharacterMovement()->Velocity = direction.GetSafeNormal() * force;
 }
 
 void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
@@ -222,10 +222,10 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	CapsuleLatentInfo.CallbackTarget = this;
 
 	/*************************************************************************************/
-	if (wallCapsuleTransitionDuration > 0)
+	if (WallCapsuleTransitionDuration > 0)
 	{
 		UKismetSystemLibrary::MoveComponentTo(GetCapsuleComponent(), hitInfo.ImpactPoint, lookRotator,
-			false, false, wallCapsuleTransitionDuration, true, EMoveComponentAction::Type::Move, CapsuleLatentInfo);
+			false, false, WallCapsuleTransitionDuration, true, EMoveComponentAction::Type::Move, CapsuleLatentInfo);
 	}
 	else {
 		GetCapsuleComponent()->SetWorldLocation(hitInfo.ImpactPoint);
@@ -244,12 +244,12 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	FRotator meshRot = UKismetMathLibrary::InverseTransformRotation(transform, MeshWallRotator);
 
 	/*************************************************************************************/
-	if (wallMeshTransitionDuration > 0)
+	if (WallMeshTransitionDuration > 0)
 	{
 		FVector meshPosOffset = UKismetMathLibrary::TransformDirection(transform, MeshStartingPosOffset);
 
 		UKismetSystemLibrary::MoveComponentTo(GetMesh(), hitInfo.ImpactPoint + meshPosOffset, MeshWallRotator
-			, false, false, wallMeshTransitionDuration, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
+			, false, false, WallMeshTransitionDuration, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
 
 	}
 	else {

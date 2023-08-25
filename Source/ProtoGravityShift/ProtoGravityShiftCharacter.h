@@ -39,12 +39,17 @@ class AProtoGravityShiftCharacter : public ACharacter
 	class UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float wallCapsuleTransitionDuration = 0.2f;
+	float WallCapsuleTransitionDuration = 0.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float wallMeshTransitionDuration = 0.2f;
+	float WallMeshTransitionDuration = 0.2f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float backToGroundTransitionDuration = 0.2f;
+	float BackToGroundTransitionDuration = 0.2f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	float GravityForce = 980;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	float WallRaycastLength = 200;
 	/******************************************************************************************/
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FRotator MeshWallRotator;
@@ -72,9 +77,6 @@ class AProtoGravityShiftCharacter : public ACharacter
 
 	UUserWidget* MarkerWidget;
 	/******************************************************************************************/
-
-public:
-
 
 public:
 	AProtoGravityShiftCharacter();
@@ -113,8 +115,9 @@ private:
 
 	FVector CalculateGravityDirection();
 
+
 	UFUNCTION(BlueprintCallable, Category = Character)
-	void ShiftAccelerating(FVector direction, float gravityForce);
+	void ShiftAccelerating(FVector direction, float force);
 
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void AdjustToWall(FHitResult hitInfo);
