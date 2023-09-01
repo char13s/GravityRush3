@@ -52,25 +52,25 @@ class AProtoGravityShiftCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float WallRaycastLength = 200;
 	/******************************************************************************************/
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FRotator MeshWallRotator;
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FVector WallNormal;
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FVector WallRight;
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FVector WallForward;
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FVector MeshStartingPosOffset;
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FRotator MeshStartingRotOffset;
 
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float DefaultGravityScale;
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float DefaultAirControl;
 
-	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	FVector GravityDirection;
 	/******************************************************************************************/
 
@@ -117,29 +117,29 @@ protected:
 
 private:
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void GoBackToGround();
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void EnterLevitating();
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void EnterAcceleration();
 
 	FVector CalculateGravityDirection();
 
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void ShiftAccelerating(FVector direction, float force);
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void ApplyWallGravity();
 
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void AdjustToWall(FHitResult hitInfo);
 
-	UFUNCTION(BlueprintCallable, Category = Character)
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
 
 	void OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);

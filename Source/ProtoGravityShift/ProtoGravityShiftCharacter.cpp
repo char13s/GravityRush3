@@ -153,7 +153,6 @@ void AProtoGravityShiftCharacter::GoBackToGround()
 	GetCharacterMovement()->AirControl = DefaultAirControl;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	//CameraBoom->SocketOffset = FVector::ZeroVector;
 	CameraOffsetTimeline->Reverse();
 	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
 
@@ -170,16 +169,13 @@ void AProtoGravityShiftCharacter::EnterLevitating()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 	GetCharacterMovement()->GravityScale = 0;
 
-	MarkerWidget->SetVisibility(ESlateVisibility::Visible);
-
-	//CameraBoom->SocketOffset = FVector(0, 50, 0);
 	CameraOffsetTimeline->Play();
+	MarkerWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
 void AProtoGravityShiftCharacter::EnterAcceleration()
 {
 	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
-	//CameraBoom->SocketOffset = FVector::ZeroVector;
 	CameraOffsetTimeline->Reverse();
 	GetCharacterMovement()->AirControl = DefaultAirControl;
 	GetCharacterMovement()->GravityScale = 0;
