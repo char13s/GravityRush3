@@ -38,6 +38,8 @@ AProtoGravityShiftCharacter::AProtoGravityShiftCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
+	CameraOffsetTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CameraOffsetTimeline"));
+
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -66,6 +68,11 @@ void AProtoGravityShiftCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	UpdateFunctionSignature.BindDynamic(this, &AProtoGravityShiftCharacter::UpdateCameraOffsetTimeline);
+	if (CameraOffsetTimelineFloatCurve != nullptr)
+	{
+		CameraOffsetTimeline->AddInterpFloat(CameraOffsetTimelineFloatCurve, UpdateFunctionSignature);
+	}
 
 	MeshStartingPosOffset = GetMesh()->GetRelativeLocation();
 	MeshStartingRotOffset = GetMesh()->GetRelativeRotation();
@@ -76,6 +83,7 @@ void AProtoGravityShiftCharacter::BeginPlay()
 	MarkerWidget = CreateWidget<UGravityMarkerWidget>(this->GetGameInstance(), MarkerWidgetClass);
 	MarkerWidget->AddToViewport();
 	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,8 +153,8 @@ void AProtoGravityShiftCharacter::GoBackToGround()
 	GetCharacterMovement()->AirControl = DefaultAirControl;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	CameraBoom->SocketOffset = FVector::ZeroVector;
-
+	//CameraBoom->SocketOffset = FVector::ZeroVector;
+	CameraOffsetTimeline->Reverse();
 	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
 
 	FLatentActionInfo MeshLatentInfo;
@@ -164,13 +172,15 @@ void AProtoGravityShiftCharacter::EnterLevitating()
 
 	MarkerWidget->SetVisibility(ESlateVisibility::Visible);
 
-	CameraBoom->SocketOffset = FVector(0, 50, 0);
+	//CameraBoom->SocketOffset = FVector(0, 50, 0);
+	CameraOffsetTimeline->Play();
 }
 
-void AProtoGravityShiftCharacter::Accelerate()
+void AProtoGravityShiftCharacter::EnterAcceleration()
 {
 	MarkerWidget->SetVisibility(ESlateVisibility::Hidden);
-	CameraBoom->SocketOffset = FVector::ZeroVector;
+	//CameraBoom->SocketOffset = FVector::ZeroVector;
+	CameraOffsetTimeline->Reverse();
 	GetCharacterMovement()->AirControl = DefaultAirControl;
 	GetCharacterMovement()->GravityScale = 0;
 	GravityDirection = CalculateGravityDirection();
@@ -203,6 +213,29 @@ FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
 void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float force)
 {
 	GetCharacterMovement()->Velocity = direction.GetSafeNormal() * force;
+}
+
+void AProtoGravityShiftCharacter::ApplyWallGravity()
+{
+	FVector startPoint = GetActorLocation();
+	FVector endPoint = startPoint + (GravityDirection * WallRaycastLength);
+
+	// Ignore any specific actors
+	TArray<AActor*> ignoreActors;
+	// Ignore self or remove this line to not ignore any
+	ignoreActors.Init(this, 1);
+
+	FHitResult hitResult;
+	bool didHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), startPoint, endPoint, ETraceTypeQuery::TraceTypeQuery1, false, ignoreActors, EDrawDebugTrace::None, hitResult, true);
+	if (!didHit)
+	{
+		//GetCharacterMovement()->AddForce(GravityDirection * GravityForce);
+		AddMovementInput(GravityDirection * GravityForce, 1);
+		UE_LOG(LogTemp, Log, TEXT("YES"));
+	}
+	else {
+		UE_LOG(LogTemp, Log, TEXT("NO"));
+	}
 }
 
 void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
@@ -312,4 +345,12 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 	GetMesh()->SetWorldRotation(finalRotation);
 	UE_LOG(LogTemp, Log, TEXT("AFTER:%s"), *GetMesh()->GetComponentRotation().ToString());
 
+}
+
+void AProtoGravityShiftCharacter::UpdateCameraOffsetTimeline(float output)
+{
+	if (CameraBoom != nullptr)
+	{
+		CameraBoom->SocketOffset = FVector(0, output * 50, 0);
+	}	
 }

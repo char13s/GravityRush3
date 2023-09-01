@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "GravityMarkerWidget.h"
+#include <Components/TimelineComponent.h>
 #include "ProtoGravityShiftCharacter.generated.h"
 
 
@@ -71,12 +72,23 @@ class AProtoGravityShiftCharacter : public ACharacter
 
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FVector GravityDirection;
+	/******************************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGravityMarkerWidget> MarkerWidgetClass;
 
 	UUserWidget* MarkerWidget;
-	/******************************************************************************************/
+
+	UPROPERTY(EditAnywhere, Category = Gravity)
+	UCurveFloat* CameraOffsetTimelineFloatCurve;
+
+protected:
+
+	//TimelineComponent to animate Door meshes
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UTimelineComponent* CameraOffsetTimeline;
+
+	FOnTimelineFloat UpdateFunctionSignature;
 
 public:
 	AProtoGravityShiftCharacter();
@@ -111,13 +123,17 @@ private:
 	void EnterLevitating();
 
 	UFUNCTION(BlueprintCallable, Category = Character)
-	void Accelerate();
+	void EnterAcceleration();
 
 	FVector CalculateGravityDirection();
 
 
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void ShiftAccelerating(FVector direction, float force);
+
+	UFUNCTION(BlueprintCallable, Category = Character)
+	void ApplyWallGravity();
+
 
 	UFUNCTION(BlueprintCallable, Category = Character)
 	void AdjustToWall(FHitResult hitInfo);
@@ -127,6 +143,7 @@ private:
 
 	void OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator);
 
-
+	UFUNCTION()
+	void UpdateCameraOffsetTimeline(float output);
 };
 
