@@ -82,7 +82,9 @@ class AProtoGravityShiftCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = GravityShift)
 	UCurveFloat* CameraOffsetTimelineFloatCurve;
 	UPROPERTY(EditAnywhere, Category = GravityShift)
-	float CameraOffset = 50;
+	FVector CameraOffsetDefault;
+	UPROPERTY(EditAnywhere, Category = GravityShift)
+	FVector CameraOffsetLevitating;
 protected:
 
 	//TimelineComponent to animate Door meshes

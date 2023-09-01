@@ -344,9 +344,9 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 }
 
 void AProtoGravityShiftCharacter::UpdateCameraOffsetTimeline(float output)
-{
+{	
 	if (CameraBoom != nullptr)
 	{
-		CameraBoom->SocketOffset = FVector(0, output * CameraOffset, 0);
+		CameraBoom->SocketOffset = UKismetMathLibrary::VLerp(CameraOffsetDefault, CameraOffsetLevitating, output);
 	}	
 }
