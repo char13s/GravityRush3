@@ -39,17 +39,17 @@ class AProtoGravityShiftCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float WallCapsuleTransitionDuration = 0.2f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float WallMeshTransitionDuration = 0.2f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float BackToGroundTransitionDuration = 0.2f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float GravityForce = 980;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float WallRaycastLength = 200;
 	/******************************************************************************************/
 	UPROPERTY(BlueprintReadWrite, Category = Character, meta = (AllowPrivateAccess = "true"))
@@ -74,14 +74,15 @@ class AProtoGravityShiftCharacter : public ACharacter
 	FVector GravityDirection;
 	/******************************************************************************************/
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGravityMarkerWidget> MarkerWidgetClass;
 
 	UUserWidget* MarkerWidget;
 
-	UPROPERTY(EditAnywhere, Category = Gravity)
+	UPROPERTY(EditAnywhere, Category = GravityShift)
 	UCurveFloat* CameraOffsetTimelineFloatCurve;
-
+	UPROPERTY(EditAnywhere, Category = GravityShift)
+	float CameraOffset = 50;
 protected:
 
 	//TimelineComponent to animate Door meshes

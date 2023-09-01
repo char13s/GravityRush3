@@ -351,6 +351,6 @@ void AProtoGravityShiftCharacter::UpdateCameraOffsetTimeline(float output)
 {
 	if (CameraBoom != nullptr)
 	{
-		CameraBoom->SocketOffset = FVector(0, output * 50, 0);
+		CameraBoom->SocketOffset = FVector(0, output * CameraOffset, 0);
 	}	
 }
