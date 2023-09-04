@@ -222,12 +222,7 @@ void AProtoGravityShiftCharacter::ApplyWallGravity()
 	bool didHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), startPoint, endPoint, ETraceTypeQuery::TraceTypeQuery1, false, ignoreActors, EDrawDebugTrace::None, hitResult, true);
 	if (!didHit)
 	{
-		//GetCharacterMovement()->AddForce(GravityDirection * GravityForce);
 		AddMovementInput(GravityDirection * GravityForce, 1);
-		UE_LOG(LogTemp, Log, TEXT("YES"));
-	}
-	else {
-		UE_LOG(LogTemp, Log, TEXT("NO"));
 	}
 }
 
@@ -327,15 +322,21 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 	UE_LOG(LogTemp, Log, TEXT("forwardVector:%s "), *forwardVector.ToString());
 	UE_LOG(LogTemp, Log, TEXT("adjustedWallRotation:%s "), *adjustedWallRotation.ToString());
 	UE_LOG(LogTemp, Log, TEXT("angle:%f "), angle);
-	UE_LOG(LogTemp, Log, TEXT("---------------------"));
-	UE_LOG(LogTemp, Log, TEXT("rot forward:%s "), *UKismetMathLibrary::GetForwardVector(finalRotation).ToString());
-	UE_LOG(LogTemp, Log, TEXT("rot right:%s "), *UKismetMathLibrary::GetRightVector(finalRotation).ToString());
-	UE_LOG(LogTemp, Log, TEXT("rot normal:%s "), *UKismetMathLibrary::GetUpVector(finalRotation).ToString());
 	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
 
-	UE_LOG(LogTemp, Log, TEXT("PREV:%s"), *GetMesh()->GetComponentRotation().ToString());
+	/*************************************************************************************/
 //	GetMesh()->SetWorldRotation(finalRotation);
-	UE_LOG(LogTemp, Log, TEXT("AFTER:%s"), *GetMesh()->GetComponentRotation().ToString());
+
+	FLatentActionInfo MeshLatentInfo;
+	MeshLatentInfo.CallbackTarget = this;
+
+	FRotator relativeRotation = UKismetMathLibrary::InverseTransformRotation(GetRootComponent()->GetRelativeTransform(), finalRotation);
+	UE_LOG(LogTemp, Log, TEXT("finalRotation:%s "), *finalRotation.ToString());
+	UE_LOG(LogTemp, Log, TEXT("relativeRotation:%s "), *relativeRotation.ToString());
+	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
+	UKismetSystemLibrary::MoveComponentTo(GetMesh(), GetMesh()->GetRelativeLocation(), relativeRotation,
+		false, false, 0.1f, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
+	/*************************************************************************************/
 
 }
 
