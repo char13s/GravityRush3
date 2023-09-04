@@ -86,7 +86,6 @@ void AProtoGravityShiftCharacter::BeginPlay()
 
 }
 
-//////////////////////////////////////////////////////////////////////////
 // Input
 
 void AProtoGravityShiftCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -144,7 +143,6 @@ void AProtoGravityShiftCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
 // Gravity Controls
 
 void AProtoGravityShiftCharacter::GoBackToGround()
@@ -203,7 +201,6 @@ FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
 	return result.GetSafeNormal();
 }
 
-//////////////////////////////////////////////////////////////////////////
 // Tick functions
 
 void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float force)
@@ -238,7 +235,7 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;	
 
 	FVector lookDir = FVector(hitInfo.Normal.X, hitInfo.Normal.Y, 0).GetSafeNormal();
 	lookDir *= -500;
@@ -294,7 +291,6 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 
 }
 
-//////////////////////////////////////////////////////////////////////////
 // Move on wall functions
 
 void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
@@ -338,7 +334,7 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
 
 	UE_LOG(LogTemp, Log, TEXT("PREV:%s"), *GetMesh()->GetComponentRotation().ToString());
-	GetMesh()->SetWorldRotation(finalRotation);
+//	GetMesh()->SetWorldRotation(finalRotation);
 	UE_LOG(LogTemp, Log, TEXT("AFTER:%s"), *GetMesh()->GetComponentRotation().ToString());
 
 }
