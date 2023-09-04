@@ -230,7 +230,7 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->bOrientRotationToMovement = false;	
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 
 	FVector lookDir = FVector(hitInfo.Normal.X, hitInfo.Normal.Y, 0).GetSafeNormal();
 	lookDir *= -500;
@@ -243,18 +243,31 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	CapsuleLatentInfo.CallbackTarget = this;
 
 	/*************************************************************************************/
+
+	float capsuleHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	float capsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+
+	FVector location = hitInfo.ImpactPoint;
+	location += (hitInfo.ImpactNormal * capsuleRadius);
+	
+	if (hitInfo.ImpactNormal.Z < 0)
+	{
+		location -= (FVector::UpVector * capsuleHeight);
+	}
+	
 	if (WallCapsuleTransitionDuration > 0)
 	{
-		UKismetSystemLibrary::MoveComponentTo(GetCapsuleComponent(), hitInfo.ImpactPoint, lookRotator,
+		UKismetSystemLibrary::MoveComponentTo(GetCapsuleComponent(), location, lookRotator,
 			false, false, WallCapsuleTransitionDuration, true, EMoveComponentAction::Type::Move, CapsuleLatentInfo);
 	}
 	else {
-		GetCapsuleComponent()->SetWorldLocation(hitInfo.ImpactPoint);
+		GetCapsuleComponent()->SetWorldLocation(location);
 		GetCapsuleComponent()->SetWorldRotation(lookRotator);
 	}
 	/*************************************************************************************/
 
 	FVector capsuleRight = UKismetMathLibrary::GetRightVector(lookRotator);
+
 
 	FTransform transform = UKismetMathLibrary::MakeTransform(hitInfo.ImpactPoint, lookRotator);
 	MeshWallRotator = UKismetMathLibrary::MakeRotFromZX(hitInfo.Normal, capsuleRight * -1);
@@ -262,28 +275,23 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 	FLatentActionInfo MeshLatentInfo;
 	MeshLatentInfo.CallbackTarget = this;
 
-	FRotator meshRot = UKismetMathLibrary::InverseTransformRotation(transform, MeshWallRotator);
-
 	/*************************************************************************************/
+	FVector meshPosOffset = UKismetMathLibrary::InverseTransformLocation(GetRootComponent()->GetRelativeTransform(), hitInfo.ImpactPoint);
+	FRotator meshRot = UKismetMathLibrary::InverseTransformRotation(transform, MeshWallRotator);
 	if (WallMeshTransitionDuration > 0)
 	{
-		FVector meshPosOffset = UKismetMathLibrary::TransformDirection(transform, MeshStartingPosOffset);
-
-		UKismetSystemLibrary::MoveComponentTo(GetMesh(), hitInfo.ImpactPoint + meshPosOffset, MeshWallRotator
+		UKismetSystemLibrary::MoveComponentTo(GetMesh(), meshPosOffset, meshRot
 			, false, false, WallMeshTransitionDuration, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
-
 	}
 	else {
-		GetMesh()->SetRelativeLocation(MeshStartingPosOffset);
+		GetMesh()->SetRelativeLocation(meshPosOffset);
 		GetMesh()->SetRelativeRotation(meshRot);
 	}
 	/*************************************************************************************/
 
 	WallNormal = hitInfo.Normal;
 	WallRight = capsuleRight;
-	WallForward = GetMesh()->GetRightVector();
-	UE_LOG(LogTemp, Log, TEXT("Wall Right:%s | Forward:%s"), *WallRight.ToString(), *WallForward.ToString());
-
+	WallForward = UKismetMathLibrary::GetRightVector(MeshWallRotator);
 }
 
 // Move on wall functions
@@ -291,9 +299,9 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 void AProtoGravityShiftCharacter::MoveOnWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
 {
 	ConsumeMovementInputVector();
-	AddMovementInput(WallRight, inputVector.X);
-	AddMovementInput(WallForward, inputVector.Y);
-	OrientMeshToWall(inputVector, WallForward, WallRight, WallNormal, MeshWallRotator);
+	AddMovementInput(right, inputVector.X);
+	AddMovementInput(forward, inputVector.Y);
+	OrientMeshToWall(inputVector, forward, right, normal, MeshWallRotator);
 }
 
 void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVector forward, FVector right, FVector normal, FRotator wallRotator)
@@ -314,26 +322,10 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 
 	FRotator finalRotation = UKismetMathLibrary::MakeRotFromZX(normal, adjustedWallRotation);
 
-	UE_LOG(LogTemp, Log, TEXT("forward:%s "), *forward.ToString());
-	UE_LOG(LogTemp, Log, TEXT("right:%s "), *right.ToString());
-	UE_LOG(LogTemp, Log, TEXT("normal:%s "), *normal.ToString());
-	UE_LOG(LogTemp, Log, TEXT("---------------------"));
-	UE_LOG(LogTemp, Log, TEXT("wallRotator:%s "), *wallRotator.ToString());
-	UE_LOG(LogTemp, Log, TEXT("forwardVector:%s "), *forwardVector.ToString());
-	UE_LOG(LogTemp, Log, TEXT("adjustedWallRotation:%s "), *adjustedWallRotation.ToString());
-	UE_LOG(LogTemp, Log, TEXT("angle:%f "), angle);
-	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
-
-	/*************************************************************************************/
-//	GetMesh()->SetWorldRotation(finalRotation);
-
 	FLatentActionInfo MeshLatentInfo;
 	MeshLatentInfo.CallbackTarget = this;
 
 	FRotator relativeRotation = UKismetMathLibrary::InverseTransformRotation(GetRootComponent()->GetRelativeTransform(), finalRotation);
-	UE_LOG(LogTemp, Log, TEXT("finalRotation:%s "), *finalRotation.ToString());
-	UE_LOG(LogTemp, Log, TEXT("relativeRotation:%s "), *relativeRotation.ToString());
-	UE_LOG(LogTemp, Log, TEXT("---------------------------------------"));
 	UKismetSystemLibrary::MoveComponentTo(GetMesh(), GetMesh()->GetRelativeLocation(), relativeRotation,
 		false, false, 0.1f, true, EMoveComponentAction::Type::Move, MeshLatentInfo);
 	/*************************************************************************************/
@@ -341,9 +333,9 @@ void AProtoGravityShiftCharacter::OrientMeshToWall(FVector2D inputVector, FVecto
 }
 
 void AProtoGravityShiftCharacter::UpdateCameraOffsetTimeline(float output)
-{	
+{
 	if (CameraBoom != nullptr)
 	{
 		CameraBoom->SocketOffset = UKismetMathLibrary::VLerp(CameraOffsetDefault, CameraOffsetLevitating, output);
-	}	
+	}
 }
