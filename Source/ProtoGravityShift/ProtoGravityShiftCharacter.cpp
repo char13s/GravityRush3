@@ -178,6 +178,7 @@ void AProtoGravityShiftCharacter::EnterAcceleration()
 	GetCharacterMovement()->AirControl = DefaultAirControl;
 	GetCharacterMovement()->GravityScale = 0;
 	GravityDirection = CalculateGravityDirection();
+	CurrentShiftAcceleration = ShiftStartSpeed;
 }
 
 FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
@@ -203,12 +204,14 @@ FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
 
 // Tick functions
 
-void AProtoGravityShiftCharacter::ShiftAccelerating(FVector direction, float force)
+void AProtoGravityShiftCharacter::ShiftAccelerating(float deltaTime)
 {
-	GetCharacterMovement()->Velocity = direction.GetSafeNormal() * force;
+	CurrentShiftAcceleration += deltaTime * ShiftAcceleration;
+	CurrentShiftAcceleration = UKismetMathLibrary::Min(CurrentShiftAcceleration, MaxShiftSpeed);
+	GetCharacterMovement()->Velocity = GravityDirection.GetSafeNormal() * CurrentShiftAcceleration;
 }
 
-void AProtoGravityShiftCharacter::ApplyWallGravity()
+void AProtoGravityShiftCharacter::ApplyWallGravity(float deltaTime)
 {
 	FVector startPoint = GetActorLocation();
 	FVector endPoint = startPoint + (GravityDirection * WallRaycastLength);
@@ -222,7 +225,11 @@ void AProtoGravityShiftCharacter::ApplyWallGravity()
 	bool didHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), startPoint, endPoint, ETraceTypeQuery::TraceTypeQuery1, false, ignoreActors, EDrawDebugTrace::None, hitResult, true);
 	if (!didHit)
 	{
-		AddMovementInput(GravityDirection * GravityForce, 1);
+		//AddMovementInput(GravityDirection * ShiftStartSpeed, 1);
+		ShiftAccelerating(deltaTime);
+	}
+	else {
+		CurrentShiftAcceleration = ShiftStartSpeed;
 	}
 }
 

@@ -47,8 +47,7 @@ class AProtoGravityShiftCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float BackToGroundTransitionDuration = 0.2f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
-	float GravityForce = 980;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float WallRaycastLength = 200;
 	/******************************************************************************************/
@@ -85,6 +84,15 @@ class AProtoGravityShiftCharacter : public ACharacter
 	FVector CameraOffsetDefault;
 	UPROPERTY(EditAnywhere, Category = GravityShift)
 	FVector CameraOffsetLevitating;
+
+	UPROPERTY(EditAnywhere, Category = GravityShift)
+	float ShiftAcceleration = 20;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
+	float ShiftStartSpeed = 980;
+	UPROPERTY(EditAnywhere, Category = GravityShift)
+	float MaxShiftSpeed = 10000;
+	
 protected:
 
 	//TimelineComponent to animate Door meshes
@@ -92,6 +100,9 @@ protected:
 	UTimelineComponent* CameraOffsetTimeline;
 
 	FOnTimelineFloat UpdateFunctionSignature;
+
+private:
+	float CurrentShiftAcceleration;
 
 public:
 	AProtoGravityShiftCharacter();
@@ -132,10 +143,10 @@ private:
 
 
 	UFUNCTION(BlueprintCallable, Category = GravityShift)
-	void ShiftAccelerating(FVector direction, float force);
+	void ShiftAccelerating(float deltaTime);
 
 	UFUNCTION(BlueprintCallable, Category = GravityShift)
-	void ApplyWallGravity();
+	void ApplyWallGravity(float deltaTime);
 
 
 	UFUNCTION(BlueprintCallable, Category = GravityShift)
