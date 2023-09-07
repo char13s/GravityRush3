@@ -9,12 +9,29 @@
 #include <Components/TimelineComponent.h>
 #include "ProtoGravityShiftCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum EShiftState 
+{
+	E_NoShift			UMETA(DisplayName = "NoShift"),
+	E_Levitating		UMETA(DisplayName = "Levitating"),
+	E_Accelerating		UMETA(DisplayName = "Accelerating"),
+	E_WallGrounded		UMETA(DisplayName = "WallGrounded"),
+};
+
 
 UCLASS(config=Game)
 class AProtoGravityShiftCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift)
+	TEnumAsByte<EShiftState> ShiftState = EShiftState::E_NoShift;
+	
+	UPROPERTY(BlueprintReadWrite, Category = GravityShift)
+	FString ShiftStateString;
+
+private:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
@@ -87,12 +104,12 @@ class AProtoGravityShiftCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, Category = GravityShift)
 	float ShiftAcceleration = 20;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GravityShift, meta = (AllowPrivateAccess = "true"))
 	float ShiftStartSpeed = 980;
 	UPROPERTY(EditAnywhere, Category = GravityShift)
 	float MaxShiftSpeed = 10000;
-	
+
+
 protected:
 
 	//TimelineComponent to animate Door meshes
@@ -114,6 +131,7 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 
+
 protected:
 
 	// APawn interface
@@ -122,11 +140,22 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 
+	// Called every frame
+	virtual void Tick(float deltaTime) override;
+
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+public:
+	
+	UFUNCTION(BlueprintCallable, Category = GravityShift)
+	void SetShiftState(EShiftState newState);
+
+	UFUNCTION(BlueprintPure, Category = GravityShift)
+	FString GetShiftStateString(EShiftState newState);
 
 private:
 
