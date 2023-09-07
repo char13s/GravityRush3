@@ -162,6 +162,8 @@ private:
 	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void GoBackToGround();
 
+	void ResetMeshRotation();
+
 	UFUNCTION(BlueprintCallable, Category = GravityShift)
 	void EnterLevitating();
 
