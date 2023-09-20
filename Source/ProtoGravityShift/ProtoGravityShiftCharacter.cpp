@@ -178,6 +178,11 @@ void AProtoGravityShiftCharacter::GoBackToGround()
 
 void AProtoGravityShiftCharacter::ResetMeshRotation()
 {
+	FRotator rot = GetCapsuleComponent()->GetComponentRotation();
+	rot.Roll = 0;
+	rot.Pitch = 0;
+	GetCapsuleComponent()->SetWorldRotation(rot);
+
 	FLatentActionInfo MeshLatentInfo;
 	MeshLatentInfo.CallbackTarget = this;
 	UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, MeshStartingRotOffset
@@ -195,6 +200,7 @@ void AProtoGravityShiftCharacter::EnterLevitating()
 	CameraOffsetTimeline->Play();
 	MarkerWidget->SetVisibility(ESlateVisibility::Visible);
 
+
 	ResetMeshRotation();
 }
 
@@ -206,6 +212,16 @@ void AProtoGravityShiftCharacter::EnterAcceleration()
 	GetCharacterMovement()->GravityScale = 0;
 	GravityDirection = CalculateGravityDirection();
 	CurrentShiftAcceleration = ShiftStartSpeed;
+
+	
+	FRotator rotator = UKismetMathLibrary::MakeRotFromZY(GravityDirection,GetCapsuleComponent()->GetRightVector());
+
+	FLatentActionInfo CapsuleLatentInfo;
+	CapsuleLatentInfo.CallbackTarget = this;
+	
+	UKismetSystemLibrary::MoveComponentTo(GetCapsuleComponent(), GetCapsuleComponent()->GetComponentLocation(), rotator,
+		false, false, 0.2f, true, EMoveComponentAction::Type::Move, CapsuleLatentInfo);
+
 }
 
 FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
