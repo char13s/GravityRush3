@@ -120,6 +120,7 @@ protected:
 
 private:
 	float CurrentShiftAcceleration;
+	float CurrentLerpTime;
 
 public:
 	AProtoGravityShiftCharacter();

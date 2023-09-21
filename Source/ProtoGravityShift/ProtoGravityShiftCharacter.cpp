@@ -178,11 +178,6 @@ void AProtoGravityShiftCharacter::GoBackToGround()
 
 void AProtoGravityShiftCharacter::ResetMeshRotation()
 {
-	FRotator rot = GetCapsuleComponent()->GetComponentRotation();
-	rot.Roll = 0;
-	rot.Pitch = 0;
-	GetCapsuleComponent()->SetWorldRotation(rot);
-
 	FLatentActionInfo MeshLatentInfo;
 	MeshLatentInfo.CallbackTarget = this;
 	UKismetSystemLibrary::MoveComponentTo(GetMesh(), MeshStartingPosOffset, MeshStartingRotOffset
@@ -212,16 +207,6 @@ void AProtoGravityShiftCharacter::EnterAcceleration()
 	GetCharacterMovement()->GravityScale = 0;
 	GravityDirection = CalculateGravityDirection();
 	CurrentShiftAcceleration = ShiftStartSpeed;
-
-	
-	FRotator rotator = UKismetMathLibrary::MakeRotFromZY(GravityDirection,GetCapsuleComponent()->GetRightVector());
-
-	FLatentActionInfo CapsuleLatentInfo;
-	CapsuleLatentInfo.CallbackTarget = this;
-	
-	UKismetSystemLibrary::MoveComponentTo(GetCapsuleComponent(), GetCapsuleComponent()->GetComponentLocation(), rotator,
-		false, false, 0.2f, true, EMoveComponentAction::Type::Move, CapsuleLatentInfo);
-
 }
 
 FVector AProtoGravityShiftCharacter::CalculateGravityDirection()
@@ -270,13 +255,13 @@ void AProtoGravityShiftCharacter::ApplyWallGravity(float deltaTime)
 
 	FHitResult hitResult;
 	bool didTopHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), startTopPoint, endTopPoint, ETraceTypeQuery::TraceTypeQuery1
-																	, false, ignoreActors, EDrawDebugTrace::ForDuration, hitResult, true,
+																	, false, ignoreActors, EDrawDebugTrace::None, hitResult, true,
 																	FLinearColor::Red, FLinearColor::Green,5.0f);
 
 	FVector startBottomPoint = GetActorLocation() - (FVector::UpVector * capsuleHeight);
 	FVector endBottomPoint = startBottomPoint + (GravityDirection * WallRaycastLength);
 	bool didBottomHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), startBottomPoint, endBottomPoint, ETraceTypeQuery::TraceTypeQuery1
-																	, false, ignoreActors, EDrawDebugTrace::ForDuration, hitResult, true,
+																	, false, ignoreActors, EDrawDebugTrace::None, hitResult, true,
 																	FLinearColor::Red, FLinearColor::Green, 5.0f);
 
 	if (didTopHit || didBottomHit)
