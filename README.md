@@ -1,5 +1,4 @@
 # GravityShiftMechanic
-
 Prototype made in Unreal Engine 5 to mimic Gravity Rush's movement system.
 
 ## Controls 
