@@ -10,14 +10,13 @@
 #include "ProtoGravityShiftCharacter.generated.h"
 
 UENUM(BlueprintType)
-enum EShiftState 
+enum class EShiftState : uint8
 {
 	E_NoShift			UMETA(DisplayName = "NoShift"),
 	E_Levitating		UMETA(DisplayName = "Levitating"),
 	E_Accelerating		UMETA(DisplayName = "Accelerating"),
 	E_WallGrounded		UMETA(DisplayName = "WallGrounded"),
 };
-
 
 UCLASS(config=Game)
 class AProtoGravityShiftCharacter : public ACharacter
@@ -26,10 +25,7 @@ class AProtoGravityShiftCharacter : public ACharacter
 
 public:
 	UPROPERTY(BlueprintReadWrite, Category = GravityShift)
-	TEnumAsByte<EShiftState> ShiftState = EShiftState::E_NoShift;
-	
-	UPROPERTY(BlueprintReadWrite, Category = GravityShift)
-	FString ShiftStateString;
+	EShiftState ShiftState = EShiftState::E_NoShift;
 
 private:
 	/** Camera boom positioning the camera behind the character */
@@ -131,8 +127,6 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-
-
 protected:
 
 	// APawn interface
@@ -149,14 +143,6 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-public:
-	
-	UFUNCTION(BlueprintCallable, Category = GravityShift)
-	void SetShiftState(EShiftState newState);
-
-	UFUNCTION(BlueprintPure, Category = GravityShift)
-	FString GetShiftStateString(EShiftState newState);
 
 private:
 

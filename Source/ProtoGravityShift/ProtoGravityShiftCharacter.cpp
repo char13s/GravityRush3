@@ -92,17 +92,6 @@ void AProtoGravityShiftCharacter::Tick(float deltaTime)
 	//UE_LOG(LogTemp, Log, TEXT("ShiftState: %s"), *UEnum::GetDisplayValueAsText(ShiftState).ToString());
 }
 
-void AProtoGravityShiftCharacter::SetShiftState(EShiftState newState)
-{
-	ShiftState = newState;
-	ShiftStateString = *UEnum::GetDisplayValueAsText(ShiftState).ToString();
-}
-
-FString AProtoGravityShiftCharacter::GetShiftStateString(EShiftState newState)
-{
-	return *UEnum::GetDisplayValueAsText(newState).ToString();
-}
-
 // Input
 
 void AProtoGravityShiftCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -173,7 +162,7 @@ void AProtoGravityShiftCharacter::GoBackToGround()
 
 	ResetMeshRotation();
 
-	SetShiftState(EShiftState::E_NoShift);
+	ShiftState = EShiftState::E_NoShift;
 }
 
 void AProtoGravityShiftCharacter::ResetMeshRotation()
@@ -238,7 +227,7 @@ void AProtoGravityShiftCharacter::ShiftAccelerating(float deltaTime)
 	CurrentShiftAcceleration = UKismetMathLibrary::Min(CurrentShiftAcceleration, MaxShiftSpeed);
 	GetCharacterMovement()->Velocity = GravityDirection.GetSafeNormal() * CurrentShiftAcceleration;
 
-	SetShiftState(EShiftState::E_Accelerating);
+	ShiftState = EShiftState::E_Accelerating;
 }
 
 void AProtoGravityShiftCharacter::ApplyWallGravity(float deltaTime)
@@ -342,7 +331,7 @@ void AProtoGravityShiftCharacter::AdjustToWall(FHitResult hitInfo)
 
 	GravityDirection = -hitInfo.Normal;
 
-	SetShiftState(EShiftState::E_WallGrounded);
+	ShiftState = EShiftState::E_WallGrounded;
 }
 
 // Move on wall functions
