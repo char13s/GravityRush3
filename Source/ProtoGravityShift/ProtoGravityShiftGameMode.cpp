@@ -4,6 +4,7 @@
 #include "ProtoGravityShiftCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
+
 AProtoGravityShiftGameMode::AProtoGravityShiftGameMode()
 {
 	// set default pawn class to our Blueprinted character
